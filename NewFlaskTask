@@ -1,0 +1,37 @@
+from flask import Flask
+import sqlite3
+
+app = Flask(__name__)
+
+
+def create_table():
+    conn = sqlite3.connect('counter.db')
+    cursor = conn.cursor()
+    cursor.execute('CREATE TABLE IF NOT EXISTS counter (value INT)')
+    cursor.execute('INSERT INTO counter (value) VALUES (0)')
+    conn.commit()
+    conn.close()
+
+
+def get_and_increment():
+    conn = sqlite3.connect('counter.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT value FROM counter')
+    current_value = cursor.fetchone()[0]
+    new_value = current_value + 1
+    cursor.execute('UPDATE counter SET value = ?', (new_value,))
+    conn.commit()
+    conn.close()
+    return new_value
+
+
+@app.route('/')
+def index():
+    create_table()
+    new_value = get_and_increment()
+    return f'New number: {new_value}'
+
+
+if __name__ == '__main__':
+    app.run()
+    
